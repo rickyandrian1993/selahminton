@@ -2,15 +2,18 @@
 
 import Search from "@/components/Search";
 import { affiliateLinks } from "@/data/affiliateLinks";
+import { Product } from "@/types/product";
+import { supabase } from "@/utils/supabase";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 const ITEMS_PER_PAGE = 6;
 
-export default function Product() {
+export default function ProductPage() {
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState("");
+  const [products, setProducts] = useState<Product[]>([]);
 
   // 🔍 Apply search filter first
   const filteredLinks = affiliateLinks.filter((product) => {
@@ -42,11 +45,24 @@ export default function Product() {
     window.open(url, "_blank");
   };
 
+  const loadProduct = async () => {
+    const { data: products } = await supabase
+      .from("products")
+      .select()
+      .order("created_at", { ascending: false });
+
+    console.log("products", products);
+
+    setProducts(products || []);
+  };
+
   useEffect(() => {
-    if (page >= totalPages) {
-      setPage(0);
-    }
-  }, [filteredLinks, page, totalPages]);
+    loadProduct();
+
+    // if (page >= totalPages) {
+    //   setPage(0);
+    // }
+  }, []);
 
   return (
     <div className="mt-4 flex flex-col items-center w-full gap-4">
