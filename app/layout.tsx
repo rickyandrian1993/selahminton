@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   icons: [
     {
       rel: "icon",
-      url: "/favicon.jpg",
+      url: "/favicon.ico",
     },
   ],
   openGraph: {
@@ -71,7 +71,7 @@ export default function RootLayout({
       >
         <div className="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat bg-fixed p-4">
           <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-            <div className="bg-[#f4e2d1]/80 backdrop-blur-md rounded-3xl p-6 w-full max-w-md text-center shadow-xl relative">
+            <div className="bg-[#f4e2d1]/70 backdrop-blur-md rounded-3xl p-6 w-full max-w-md text-center shadow-xl relative">
               <Avatar />
 
               {children}

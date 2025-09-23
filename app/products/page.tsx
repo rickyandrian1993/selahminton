@@ -1,32 +1,25 @@
 "use client";
 
+import Loading from "@/components/Loading";
+import Pagination from "@/components/Pagination";
 import Search from "@/components/Search";
-import { affiliateLinks } from "@/data/affiliateLinks";
 import { Product } from "@/types/product";
 import { supabase } from "@/utils/supabase";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 const ITEMS_PER_PAGE = 6;
 
 export default function ProductPage() {
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
 
-  // 🔍 Apply search filter first
-  const filteredLinks = affiliateLinks.filter((product) => {
-    const name = `${product.category} | ${product.name}`;
-
-    return name.toLowerCase().includes(search.toLowerCase());
-  });
-
-  // 🔄 Apply pagination to filtered results
-  const start = page * ITEMS_PER_PAGE;
-  const paginatedIcons = filteredLinks.slice(start, start + ITEMS_PER_PAGE);
-
-  const totalPages = Math.ceil(filteredLinks.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   const handlePrev = () => setPage((p) => Math.max(p - 1, 0));
   const handleNext = () => {
@@ -41,83 +34,98 @@ export default function ProductPage() {
     setPage(0);
   };
 
-  const handleProdcutClick = (url: string) => {
+  // ⏳ Debounce search input
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 1000);
+
+    return () => clearTimeout(handler);
+  }, [search]);
+
+  const handleProductClick = (url: string) => {
     window.open(url, "_blank");
   };
 
-  const loadProduct = async () => {
-    const { data: products } = await supabase
-      .from("products")
-      .select()
-      .order("created_at", { ascending: false });
+  const loadProduct = useCallback(async () => {
+    try {
+      setLoading(true);
 
-    console.log("products", products);
+      const from = page * ITEMS_PER_PAGE;
+      const to = from + ITEMS_PER_PAGE - 1;
 
-    setProducts(products || []);
-  };
+      let query = supabase
+        .from("products")
+        .select("*", { count: "exact" })
+        .order("created_at", { ascending: false })
+        .range(from, to);
+
+      // apply search with debounce
+      if (debouncedSearch.trim() !== "") {
+        query = query.or(`name.ilike.%${debouncedSearch}%`);
+      }
+
+      const { data, count, error } = await query;
+      if (error) throw error;
+
+      setProducts(data || []);
+      setTotalCount(count || 0);
+    } catch (error) {
+      alert("Error load products!");
+      console.error("Error loading products:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [page, debouncedSearch]);
 
   useEffect(() => {
     loadProduct();
-
-    // if (page >= totalPages) {
-    //   setPage(0);
-    // }
-  }, []);
+  }, [page, debouncedSearch, loadProduct]);
 
   return (
     <div className="mt-4 flex flex-col items-center w-full gap-4">
-      {/* Product Card Grid */}
+      {/* Back to Home */}
       <Link
-        className="w-full bg-[#ecebe8] rounded-xl shadow hover:shadow-lg p-2 flex flex-col items-center text-center transition-all duration-200 transform hover:scale-110 hover:cursor-pointer"
+        className="w-full bg-[#ecebe8] rounded-xl shadow hover:shadow-lg p-2 flex flex-col items-center text-center transition-all duration-200 transform hover:scale-105 hover:cursor-pointer"
         href={"/"}
       >
         Back to Home
       </Link>
-      <Search onSearchChange={handleSearchChange} search={search} />
-      <div className="grid grid-cols-2 gap-4 w-full">
-        {paginatedIcons.map((product, index) => (
-          <button
-            key={index}
-            className="bg-[#ecebe8] rounded-xl shadow hover:shadow-lg p-4 flex flex-col items-center text-center transition-all duration-200 transform hover:scale-105 hover:cursor-pointer"
-            onClick={() => handleProdcutClick(product.url)}
-          >
-            <Image
-              src={product.image}
-              alt={product.name}
-              className="w-24 h-24 rounded-md object-cover mb-2"
-            />
-            <span className="text-sm font-medium text-gray-700 hover:text-pink-500 transition line-clamp-2">
-              {product.category} | {product.name}
-            </span>
-          </button>
-        ))}
-      </div>
-      {/* Pagination Controls */}
-      {filteredLinks.length > ITEMS_PER_PAGE && (
-        <div className="flex justify-center gap-4 w-full mt-3 px-4">
-          <button
-            onClick={handlePrev}
-            disabled={page === 0}
-            className={`text-sm px-4 py-1 rounded-lg transition ${
-              page === 0
-                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
-          >
-            ◀ Prev
-          </button>
-          <button
-            onClick={handleNext}
-            disabled={page + 1 >= totalPages}
-            className={`text-sm px-4 py-1 rounded-lg transition ${
-              page + 1 >= totalPages
-                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
-          >
-            Next ▶
-          </button>
-        </div>
+
+      {loading && <Loading />}
+
+      {!loading && (
+        <>
+          <Search onSearchChange={handleSearchChange} search={search} />
+          <div className="grid grid-cols-2 gap-4 w-full">
+            {products.map((product) => (
+              <button
+                key={product.id}
+                className="bg-[#ecebe8] rounded-xl shadow hover:shadow-lg p-4 flex flex-col items-center text-center transition-all duration-200 transform hover:scale-105 hover:cursor-pointer"
+                onClick={() => handleProductClick(product.link)}
+              >
+                <Image
+                  src={product.image_url}
+                  alt={product.name}
+                  width={96}
+                  height={96}
+                  className="w-24 h-24 rounded-md object-cover mb-2"
+                />
+                <span className="text-sm font-medium text-gray-700 hover:text-pink-500 transition line-clamp-2">
+                  {product.name}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {/* Pagination Controls */}
+          <Pagination
+            handleNext={handleNext}
+            handlePrev={handlePrev}
+            page={page}
+            totalPages={totalPages}
+          />
+        </>
       )}
     </div>
   );
