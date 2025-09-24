@@ -1,39 +1,34 @@
-'use client'
+"use client";
 
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from "react";
 
-export default function Search() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
+export default function Search({
+  search,
+  onSearchChange,
+  delay = 500,
+}: {
+  search: string;
+  onSearchChange: (value: string) => void;
+  delay?: number;
+}) {
+  const [inputValue, setInputValue] = useState(search);
 
-  // initialize once from current URL
-  const [value, setValue] = useState(() => searchParams.get('search') || '')
-
+  // ⏳ Debounce effect
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      const params = new URLSearchParams(window.location.search)
+    const handler = setTimeout(() => {
+      onSearchChange(inputValue);
+    }, delay);
 
-      if (value.trim()) {
-        params.set('search', value.trim())
-        params.set('page', '1') // reset page only when typing
-      } else {
-        params.delete('search')
-      }
-
-      router.push(`/products?${params.toString()}`)
-    }, 1000)
-
-    return () => clearTimeout(timeout)
-  }, [value, router])
+    return () => clearTimeout(handler);
+  }, [inputValue, delay, onSearchChange]);
 
   return (
     <input
       type="text"
-      placeholder="Search products..."
-      value={value}
-      onChange={(e) => setValue(e.target.value)}
       className="w-full max-w-md px-4 py-2 rounded-lg border bg-[#ecebe8] border-[#ecebe8] focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm"
+      placeholder="Search products..."
+      value={inputValue}
+      onChange={(e) => setInputValue(e.target.value)}
     />
-  )
+  );
 }
