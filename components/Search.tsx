@@ -1,28 +1,40 @@
-import { useEffect, useRef } from "react";
+'use client'
 
-type SearchProps = {
-  search: string;
-  onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-};
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
-export default function Search({ search, onSearchChange }: SearchProps) {
-  const inputRef = useRef<HTMLInputElement | null>(null);
+export default function Search() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // initialize once from current URL
+  const [value, setValue] = useState(() => searchParams.get('search') || '')
 
   useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.selectionStart = inputRef.current.value.length;
-    }
-  }, [search]);
+    const timeout = setTimeout(() => {
+      const params = new URLSearchParams(window.location.search)
+
+      if (value.trim()) {
+        params.set('search', value.trim())
+        params.set('page', '1') // reset page only when typing
+      } else {
+        params.delete('search')
+      }
+
+      router.push(`/products?${params.toString()}`)
+    }, 1000)
+
+    return () => clearTimeout(timeout)
+  }, [value, router])
 
   return (
     <input
-      ref={inputRef}
       type="text"
       placeholder="Search products..."
-      value={search}
-      onChange={onSearchChange}
-      className="w-full max-w-md px-4 py-2 rounded-lg border bg-[#ecebe8] border-[#ecebe8] focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm"
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+      className="w-full max-w-md px-4 py-2 rounded-lg border bg-[#ecebe8] border-[#ecebe8] 
+                 focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm"
     />
-  );
+  )
 }

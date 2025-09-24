@@ -1,111 +1,101 @@
-"use client";
+'use client'
 
-import { Product } from "@/types/product";
-import { supabase } from "@/utils/supabase";
-import Image from "next/image";
-import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { Product } from '@/types/product'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useRef, useState } from 'react'
 
 export default function ProductForm() {
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const [products, setProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(false)
+  const [imageFile, setImageFile] = useState<File | null>(null)
   const [newProduct, setNewProduct] = useState({
-    name: "",
-    link: "",
-  });
+    name: '',
+    link: ''
+  })
 
   // Handle text input
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setNewProduct((prev) => ({ ...prev, [name]: value }));
-  };
+    const { name, value } = e.target
+    setNewProduct((prev) => ({ ...prev, [name]: value }))
+  }
 
   // Handle file input
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const file = e.target.files?.[0]
+    if (!file) return
 
-    if (!file.type.startsWith("image/")) {
-      alert("Only image files are allowed.");
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      return;
+    if (!file.type.startsWith('image/')) {
+      alert('Only image files are allowed.')
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      return
     }
 
-    setImageFile(file);
-  };
+    setImageFile(file)
+  }
 
   // Submit form
   const handleAddProduct = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+    // e.preventDefault()
+    // setLoading(true)
+    // try {
+    //   let imageUrl: string | null = null
+    //   // 1. Upload image to Supabase Storage
+    //   if (imageFile) {
+    //     const fileName = `${Date.now()}-${imageFile.name}`
+    //     const { error: uploadError } = await supabase.storage
+    //       .from('products') // ⚠️ bucket name must match your setup
+    //       .upload(fileName, imageFile)
+    //     if (uploadError) throw uploadError
+    //     // 2. Get the public URL
+    //     const {
+    //       data: { publicUrl }
+    //     } = supabase.storage.from('products').getPublicUrl(fileName)
+    //     imageUrl = publicUrl
+    //   }
+    //   // 3. Insert product into DB with image URL
+    //   const { error: insertError } = await supabase.from('products').insert([
+    //     {
+    //       name: newProduct.name,
+    //       link: newProduct.link,
+    //       image_url: imageUrl
+    //     }
+    //   ])
+    //   if (insertError) throw insertError
+    //   // 4. Reset form
+    //   setNewProduct({ name: '', link: '' })
+    //   setImageFile(null)
+    //   if (fileInputRef.current) fileInputRef.current.value = ''
+    //   // 5. Reload products
+    //   await loadProducts()
+    // } catch (err) {
+    //   console.error('Error inserting product:', err)
+    //   alert('Failed to save product: ' + (err as Error).message)
+    // } finally {
+    //   setLoading(false)
+    // }
+  }
 
-    try {
-      let imageUrl: string | null = null;
+  // // Load products from Supabase
+  // const loadProducts = async () => {
+  //   const { data } = await supabase
+  //     .from('products')
+  //     .select()
+  //     .order('created_at', { ascending: false })
 
-      // 1. Upload image to Supabase Storage
-      if (imageFile) {
-        const fileName = `${Date.now()}-${imageFile.name}`;
-        const { error: uploadError } = await supabase.storage
-          .from("products") // ⚠️ bucket name must match your setup
-          .upload(fileName, imageFile);
+  //   setProducts(data || [])
+  // }
 
-        if (uploadError) throw uploadError;
-
-        // 2. Get the public URL
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from("products").getPublicUrl(fileName);
-
-        imageUrl = publicUrl;
-      }
-
-      // 3. Insert product into DB with image URL
-      const { error: insertError } = await supabase.from("products").insert([
-        {
-          name: newProduct.name,
-          link: newProduct.link,
-          image_url: imageUrl,
-        },
-      ]);
-
-      if (insertError) throw insertError;
-
-      // 4. Reset form
-      setNewProduct({ name: "", link: "" });
-      setImageFile(null);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-
-      // 5. Reload products
-      await loadProducts();
-    } catch (err) {
-      console.error("Error inserting product:", err);
-      alert("Failed to save product: " + (err as Error).message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Load products from Supabase
-  const loadProducts = async () => {
-    const { data } = await supabase
-      .from("products")
-      .select()
-      .order("created_at", { ascending: false });
-
-    setProducts(data || []);
-  };
-
-  useEffect(() => {
-    loadProducts();
-  }, []);
+  // useEffect(() => {
+  //   loadProducts()
+  // }, [])
 
   return (
     <div>
       <Link
         className="w-full bg-[#ecebe8] rounded-xl shadow hover:shadow-lg p-2 flex flex-col items-center text-center transition-all duration-200 transform hover:scale-105 hover:cursor-pointer"
-        href={"/products"}
+        href={'/products'}
       >
         Back to Products
       </Link>
@@ -150,7 +140,7 @@ export default function ProductForm() {
           disabled={loading}
           className="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-md transition disabled:opacity-50"
         >
-          {loading ? "Saving..." : "Add Product"}
+          {loading ? 'Saving...' : 'Add Product'}
         </button>
       </form>
 
@@ -183,5 +173,5 @@ export default function ProductForm() {
         </div>
       </div>
     </div>
-  );
+  )
 }
