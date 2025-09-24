@@ -1,4 +1,5 @@
 import Link from "next/link";
+import FormInput from "./FormInput";
 
 export default function ProductForm() {
   return (
@@ -9,10 +10,8 @@ export default function ProductForm() {
       >
         Back to Products
       </Link>
-      {/* Add New Product Form */}
-      {/* <FormInput />
 
-      <ProductLists /> */}
+      <FormInput />
     </>
   );
 }

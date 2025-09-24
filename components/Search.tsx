@@ -16,11 +16,13 @@ export default function Search({
   // ⏳ Debounce effect
   useEffect(() => {
     const handler = setTimeout(() => {
-      onSearchChange(inputValue);
+      if (inputValue !== search) {
+        onSearchChange(inputValue);
+      }
     }, delay);
 
     return () => clearTimeout(handler);
-  }, [inputValue, delay, onSearchChange]);
+  }, [inputValue, delay, onSearchChange, search]);
 
   return (
     <input
