@@ -17,8 +17,7 @@ export default function ProductItem({
       href={link}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex flex-col items-center bg-[#ecebe8] rounded-xl shadow hover:shadow-lg p-3 
-                 transition-all duration-200 transform hover:scale-105 w-full"
+      className="flex flex-col items-center bg-[#ecebe8] rounded-xl shadow hover:shadow-lg p-3 transition-all duration-200 transform hover:scale-105 w-full"
     >
       <div className="relative w-full h-40 rounded-lg overflow-hidden mb-2">
         <Image

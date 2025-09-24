@@ -33,8 +33,7 @@ export default function Search() {
       placeholder="Search products..."
       value={value}
       onChange={(e) => setValue(e.target.value)}
-      className="w-full max-w-md px-4 py-2 rounded-lg border bg-[#ecebe8] border-[#ecebe8] 
-                 focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm"
+      className="w-full max-w-md px-4 py-2 rounded-lg border bg-[#ecebe8] border-[#ecebe8] focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm"
     />
   )
 }
