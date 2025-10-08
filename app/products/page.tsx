@@ -1,48 +1,57 @@
-import Loading from '@/components/Loading'
-import Search from '@/components/Search'
-import Link from 'next/link'
-import { Suspense } from 'react'
-import ProductGrid from './ProductGrid'
+"use client";
 
-interface ProductPageProps {
-  searchParams?: { [key: string]: string | string[] | undefined }
-}
+import Loading from "@/components/Loading";
+import Pagination from "@/components/Pagination";
+import Search from "@/components/Search";
+import { useDebounce } from "@/hooks/useDebounce";
+import { useProducts } from "@/hooks/useProducts";
+import Link from "next/link";
+import { useState } from "react";
+import ProductList from "./ProductList";
 
-export default async function ProductPage({ searchParams }: ProductPageProps) {
-  // ✅ Await the searchParams if needed
-  const params = await Promise.resolve(searchParams)
+export default function ProductPage() {
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(0);
+  const debouncedSearch = useDebounce(search, 1000);
 
-  // Page number
-  const pageParam = Array.isArray(params?.page) ? params.page[0] : params?.page
-  const page = parseInt(pageParam || '1', 10)
+  const { products, loading, totalCount, ITEMS_PER_PAGE } = useProducts(
+    debouncedSearch,
+    page
+  );
 
-  // Search query
-  const searchParam = Array.isArray(params?.search)
-    ? params.search[0]
-    : params?.search
-  const search = searchParam?.trim() || ''
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   return (
-    <div className="mt-4 flex flex-col items-center w-full gap-4">
+    <div className="mt-4 flex flex-col item-center w-full gap-4">
       <Link
         className="w-full bg-[#ecebe8] rounded-xl shadow hover:shadow-lg p-2 flex flex-col items-center text-center transition-all duration-200 transform hover:scale-105 hover:cursor-pointer"
-        href={'/products/form'}
+        href={"/products/form"}
       >
         Add New Product
       </Link>
       <Link
         className="w-full bg-[#ecebe8] rounded-xl shadow hover:shadow-lg p-2 flex flex-col items-center text-center transition-all duration-200 transform hover:scale-105 hover:cursor-pointer"
-        href={'/'}
+        href={"/"}
       >
         Back to Home
       </Link>
 
-      <Search />
+      <Search
+        search={search}
+        onSearchChange={(val) => {
+          setSearch(val);
+          setPage(0);
+        }}
+      />
 
-      {/* Products grid with Suspense */}
-      <Suspense fallback={<Loading />}>
-        <ProductGrid page={page} search={search} />
-      </Suspense>
+      {loading ? <Loading /> : <ProductList products={products} />}
+
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        handleNext={() => setPage((p) => Math.min(p + 1, totalPages - 1))}
+        handlePrev={() => setPage((p) => Math.max(p - 1, 0))}
+      />
     </div>
-  )
+  );
 }
