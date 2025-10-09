@@ -24,7 +24,7 @@ export default function Menus() {
       <button
         className="w-full bg-[#ecebe8] rounded-xl shadow hover:shadow-lg p-2 flex flex-col items-center text-center transition-all duration-200 transform hover:scale-105 hover:cursor-pointer"
         onClick={() =>
-          window.open('https://www.youtube.com/@selahminton-25', '_blank')
+          window.open('https://www.youtube.com/@selahminton', '_blank')
         }
       >
         Youtube
